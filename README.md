@@ -46,7 +46,7 @@ sequenceDiagram
     CRON->>C: Reminder before the job
     CRON->>C: Balance link after the job
     CRON->>C: Review request once paid
-    Note over O: Owner handles edge cases by voice:<br/>"move the Smith job to Friday"
+    Note over O: Owner handles exceptions by voice note
 ```
 
 ---
@@ -100,8 +100,8 @@ graph TD
     STRIPE --> Core
     CR --> Core
     Core --> MSG
-    MSG -.notify.-> TG
-    MSG -.notify.-> WA
+    MSG -. notify .-> TG
+    MSG -. notify .-> WA
 ```
 
 The LLM runs the **conversation**. It never runs the **money**. Every booking, price, and payment goes through a deterministic, schema-validated tool layer (`engine/tools.ts`), so the model can misread a sentence but it cannot misquote a price, double-book a slot, or charge the wrong card. Same trust boundary you'd put around any LLM that touches real dollars.
