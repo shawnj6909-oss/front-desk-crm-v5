@@ -93,13 +93,12 @@ graph TD
     SMS --> T
     TG --> T
     WA --> T
-    T --> Engine
+    T --> LLM
     LLM --> TOOLS
     TOOLS --> Core
     Core --> DB
     STRIPE --> Core
     CR --> Core
-    Core --> MSG
     MSG -. notify .-> TG
     MSG -. notify .-> WA
 ```
