@@ -35,7 +35,7 @@ sequenceDiagram
 
     C->>FD: Calls / texts the business number
     FD->>CORE: Quote from rate card + capacity check
-    FD->>C: "That's $180, Thursday 9am works"
+    FD->>C: Quote is $180, Thursday at 9am
     C->>FD: Confirms
     FD->>CORE: Create booking (hold the slot)
     FD->>PAY: Deposit checkout link
@@ -56,38 +56,38 @@ sequenceDiagram
 ```mermaid
 graph TD
     subgraph Channels
-        VOICE[Phone: Twilio + LiveKit]
-        SMS[SMS: Twilio]
-        TG[Telegram]
-        WA[WhatsApp]
+        VOICE["Phone: Twilio + LiveKit"]
+        SMS["SMS: Twilio"]
+        TG["Telegram"]
+        WA["WhatsApp"]
     end
 
     subgraph Transports
-        T[transports + voicebridge]
+        T["transports + voicebridge"]
     end
 
-    subgraph Engine[Conversation engine]
-        LLM[LLM: intent + dialogue]
-        TOOLS[Deterministic tools]
-        LANG[Bilingual EN / ES]
+    subgraph Engine["Conversation engine"]
+        LLM["LLM: intent + dialogue"]
+        TOOLS["Deterministic tools"]
+        LANG["Bilingual EN / ES"]
     end
 
-    subgraph Core[Domain core]
-        BOOK[bookings + capacity]
-        QUOTE[quote + policy]
-        MSG[messaging + events]
-        EXC[exceptions]
+    subgraph Core["Domain core"]
+        BOOK["bookings + capacity"]
+        QUOTE["quote + policy"]
+        MSG["messaging + events"]
+        EXC["exceptions"]
     end
 
-    subgraph Money
-        STRIPE[payments: checkout, webhook verify, idempotency]
+    subgraph Money["Money"]
+        STRIPE["payments: checkout, webhook verify, idempotency"]
     end
 
-    subgraph Automation
-        CR[crons: reminders, deposit expiry, balance reconciliation, rebook nudge, review request]
+    subgraph Automation["Automation"]
+        CR["crons: reminders, deposit expiry, balance reconciliation, rebook nudge, review request"]
     end
 
-    DB[(Multi-tenant Postgres<br/>platform + tenant schemas)]
+    DB[("Multi-tenant Postgres<br/>platform + tenant schemas")]
 
     VOICE --> T
     SMS --> T
