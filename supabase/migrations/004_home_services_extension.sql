@@ -75,20 +75,58 @@ create index if not exists idx_properties_zip on properties(tenant_id, zip);
 -- ============ BOOKING ASSIGNMENTS & CREW CAPACITY ============
 
 -- One row per booking, one crew per booking, one crew per time window
+-- Double-booking is prevented by a trigger check
 create table if not exists booking_assignments (
   booking_id uuid primary key references bookings(id) on delete cascade,
   crew_id    uuid not null references crews(id),
   starts_at  timestamptz not null,
   ends_at    timestamptz not null,
-  check (ends_at > starts_at),
-  exclude using gist (
-    crew_id with =,
-    tstzrange(starts_at, ends_at) with &&
-  )
+  check (ends_at > starts_at)
 );
+
+-- Trigger to prevent crew double-booking
+create or replace function check_crew_no_double_book()
+returns trigger as $$
+begin
+  if exists (
+    select 1 from booking_assignments
+    where crew_id = NEW.crew_id
+    and booking_id != NEW.booking_id
+    and starts_at < NEW.ends_at
+    and ends_at > NEW.starts_at
+  ) then
+    raise exception 'Crew % is already booked for the overlapping time slot', NEW.crew_id;
+  end if;
+  return NEW;
+end;
+$$ language plpgsql;
+
+create trigger prevent_crew_double_book
+before insert or update on booking_assignments
+for each row execute function check_crew_no_double_book();
 
 create index if not exists idx_booking_assignments_crew_id
   on booking_assignments(crew_id, starts_at, ends_at);
+
+-- ============ PAYMENT METHODS (CARD ON FILE) ============
+
+create table if not exists payment_methods (
+  id                 uuid primary key default gen_random_uuid(),
+  tenant_id          uuid not null references tenants(id),
+  client_id          uuid not null references clients(id),
+  stripe_customer_id text not null,
+  stripe_pm_id       text not null,
+  brand              text,
+  last4              text,
+  status             text not null default 'active'
+    check (status in ('active','removed')),
+  created_at         timestamptz not null default now()
+);
+
+create index if not exists idx_payment_methods_client_id
+  on payment_methods(tenant_id, client_id);
+create unique index if not exists idx_payment_methods_stripe_pm
+  on payment_methods(tenant_id, stripe_pm_id);
 
 -- ============ RECURRING SERIES ============
 
@@ -116,26 +154,6 @@ create table if not exists recurring_series (
 create index if not exists idx_recurring_series_tenant_id on recurring_series(tenant_id);
 create index if not exists idx_recurring_series_client_id on recurring_series(tenant_id, client_id);
 create index if not exists idx_recurring_series_next_run on recurring_series(tenant_id, next_run_date) where status = 'active';
-
--- ============ PAYMENT METHODS (CARD ON FILE) ============
-
-create table if not exists payment_methods (
-  id                 uuid primary key default gen_random_uuid(),
-  tenant_id          uuid not null references tenants(id),
-  client_id          uuid not null references clients(id),
-  stripe_customer_id text not null,
-  stripe_pm_id       text not null,
-  brand              text,
-  last4              text,
-  status             text not null default 'active'
-    check (status in ('active','removed')),
-  created_at         timestamptz not null default now()
-);
-
-create index if not exists idx_payment_methods_client_id
-  on payment_methods(tenant_id, client_id);
-create unique index if not exists idx_payment_methods_stripe_pm
-  on payment_methods(tenant_id, stripe_pm_id);
 
 -- ============ CANCELLATION POLICY ============
 
@@ -179,7 +197,6 @@ alter table if exists rate_card_entries
 
 create index if not exists idx_bookings_property_id on bookings(tenant_id, property_id);
 create index if not exists idx_bookings_series_id on bookings(tenant_id, series_id);
-create index if not exists idx_bookings_crew_assignment on booking_assignments(tenant_id, crew_id);
 
 -- ============ SCHEMA VERSION ============
 

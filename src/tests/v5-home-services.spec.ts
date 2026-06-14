@@ -11,23 +11,21 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Database } from '@supabase/supabase-js';
-import {
-  checkAvailability,
-  quoteChange,
-  rescheduleBooking,
-  cancelBooking,
-  startRecurringSeries,
-  skipNextVisit,
-} from '../engine/tools-v5';
+import { createClient } from '@supabase/supabase-js';
 import { DateTime } from 'luxon';
 
-describe('V5 Home-Services Extension', () => {
-  let db: Database;
+const hasSupabaseEnv = !!process.env.SUPABASE_URL && !!process.env.SUPABASE_ANON_KEY;
+
+describe.skipIf(!hasSupabaseEnv)('V5 Home-Services Extension', () => {
+  let db: ReturnType<typeof createClient>;
   let tenantId: string;
 
   beforeEach(async () => {
-    // Set up test tenant and crew
+    // Initialize Supabase client
+    const url = process.env.SUPABASE_URL!;
+    const key = process.env.SUPABASE_ANON_KEY!;
+
+    db = createClient(url, key);
     tenantId = 'test-tenant-' + Date.now();
   });
 
