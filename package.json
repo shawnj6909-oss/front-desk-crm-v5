@@ -1,0 +1,38 @@
+{
+  "name": "front-desk-crm-v5",
+  "version": "5.0.0",
+  "description": "AI receptionist CRM for home-services with crews, recurring series, and deterministic pricing",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:v5": "vitest run src/tests/v5-home-services.spec.ts",
+    "type-check": "tsc --noEmit",
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts"
+  },
+  "keywords": [
+    "crm",
+    "home-services",
+    "cleaning",
+    "ai-receptionist",
+    "supabase",
+    "typescript"
+  ],
+  "author": "shawnj6909-oss",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0",
+    "drizzle-orm": "^0.29.0",
+    "luxon": "^3.3.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.3.0",
+    "@types/node": "^20.4.0",
+    "typescript": "^5.1.0",
+    "vitest": "^0.34.0",
+    "tsx": "^3.14.0"
+  }
+}
